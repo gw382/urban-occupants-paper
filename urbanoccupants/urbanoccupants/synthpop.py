@@ -46,7 +46,6 @@ class HouseholdFeature(Enum):
 
     def tus_value_to_uo_value(self, feature_values, age):
         return feature_values.map(self.tus_mapping)
-        return new_values
 
     def read_census_data(self, geographical_layer):
         return self._census_read_function(geographical_layer)
