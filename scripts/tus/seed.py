@@ -12,10 +12,11 @@ HOUSEHOLD_TYPE_FEATURE_NAME = str(HouseholdFeature.HOUSEHOLD_TYPE)
 
 
 @click.command()
-@click.argument('path_to_input')
+@click.argument('path_to_individuals')
+@click.argument('path_to_households')
 @click.argument('path_to_output')
-def read_seed(path_to_input, path_to_output):
-    """Reads, transforms, and filters the individual data from the TUS data set.
+def read_seed(path_to_individuals, path_to_households, path_to_output):
+    """Reads, transforms, and filters the individual and household data from the TUS data set.
 
     The raw data is mapped to people and household features of this study, all other
     features are discarded. Furthermore the data set is filtered by correct households,
@@ -24,7 +25,7 @@ def read_seed(path_to_input, path_to_output):
 
     Output is written in plain pickle format.
     """
-    individual_data = _read_raw_data(path_to_input)
+    individual_data = _read_raw_data(path_to_individuals, path_to_households)
     print("Read {} individuals.".format(individual_data.shape[0]))
     seed = _map_to_internal_types(individual_data)
     seed = _filter_invalid_households(seed)
@@ -32,8 +33,16 @@ def read_seed(path_to_input, path_to_output):
     seed.to_pickle(path_to_output)
 
 
-def _read_raw_data(path_to_input):
-    return pytus2000.read_individual_file(path_to_input)
+def _read_raw_data(path_to_individuals, path_to_households):
+    individuals = pytus2000.read_individual_file(path_to_individuals)
+    hhdata = pytus2000.read._read_file(
+        module=pytus2000.datadicts.household,
+        index_columns=2,
+        path_to_file = path_to_households
+    )
+    merged_data = pd.concat([individuals, hhdata.reindex(individuals.index, method='ffill')], axis=1)
+    merged_data = merged_data.loc[:,~merged_data.columns.duplicated()]
+    return merged_data
 
 
 def _map_to_internal_types(individual_data):

@@ -14,7 +14,7 @@ test: | build
 tus-data: build/seed.pickle build/markov-ts.pickle
 
 build/seed.pickle: ./data/UKDA-4504-tab/tab/Individual_data_5.tab ./scripts/tus/seed.py | build
-	python ./scripts/tus/seed.py ./data/UKDA-4504-tab/tab/Individual_data_5.tab ./build/seed.pickle
+	python ./scripts/tus/seed.py ./data/UKDA-4504-tab/tab/Individual_data_5.tab ./data/UKDA-4504-tab/tab/hhld_data_6.tab ./build/seed.pickle
 
 build/markov-ts.pickle: ./data/UKDA-4504-tab/tab/diary_data_8.tab ./scripts/tus/markovts.py | build
 	python ./scripts/tus/markovts.py ./data/UKDA-4504-tab/tab/diary_data_8.tab ./build/markov-ts.pickle

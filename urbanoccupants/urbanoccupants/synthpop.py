@@ -7,12 +7,12 @@ import pandas as pd
 
 from .hipf import fit_hipf
 from .types import AgeStructure, EconomicActivity, HouseholdType, Qualification, Pseudo, Carer,\
-    PersonalIncome, PopulationDensity, Region
+    PersonalIncome, PopulationDensity, Region, DwellingType
 from .tus import AGE_MAP, ECONOMIC_ACTIVITY_MAP, HOUSEHOLDTYPE_MAP, QUALIFICATION_MAP, PSEUDO_MAP,\
-    CARER_MAP, PERSONAL_INCOME_MAP, POPULATION_DENSITY_MAP, REGION_MAP
+    CARER_MAP, PERSONAL_INCOME_MAP, POPULATION_DENSITY_MAP, REGION_MAP, dwellingtype_map
 from .census import read_age_structure_data, read_household_type_data, \
     read_qualification_level_data, read_economic_activity_data,\
-    read_pseudo_individual_data, read_pseudo_household_data
+    read_pseudo_individual_data, read_pseudo_household_data, read_dwelling_type_data
 
 Household = namedtuple('Household', ['id', 'seedId', 'region'])
 Citizen = namedtuple('Citizen', ['householdId', 'markovId', 'initialActivity',
@@ -34,6 +34,7 @@ class HouseholdFeature(Enum):
     POPULATION_DENSITY = (PopulationDensity, 'POP_DEN2', POPULATION_DENSITY_MAP,
                           _unimplemented_census_read_function)
     REGION = (Region, 'GORPAF', REGION_MAP, _unimplemented_census_read_function)
+    DWELLING_TYPE = (DwellingType, ['HQ13A','HQ13B','HQ13C','HQ13D'],dwellingtype_map, read_dwelling_type_data)
 
     def __init__(self, uo_type, tus_variable_name, tus_mapping, census_read_function):
         self.uo_type = uo_type
@@ -45,7 +46,10 @@ class HouseholdFeature(Enum):
         return str(self)
 
     def tus_value_to_uo_value(self, feature_values, age):
-        return feature_values.map(self.tus_mapping)
+        if isinstance(feature_values, pd.Series):
+            feature_values.map(self.tus_mapping)
+        else:
+            return feature_values.apply(self.tus_mapping, axis=1, raw=True)
 
     def read_census_data(self, geographical_layer):
         return self._census_read_function(geographical_layer)

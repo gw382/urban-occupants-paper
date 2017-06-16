@@ -58,6 +58,16 @@ class HouseholdType(OrderedEnum):
     MULTI_PERSON_HOUSEHOLD = 5
 
 
+class DwellingType(OrderedEnum):
+    DETACHED_WHOLE_HOUSE_OR_BUNGALOW = 1
+    SEMI_DETACHED_WHOLE_HOUSE_OR_BUNGALOW = 2
+    TERRACED_WHOLE_HOUSE_OR_BUNGALOW = 3
+    FLAT_PURPOSE_BUILT_BLOCK = 4
+    FLAT_CONVERTED_OR_SHARED_HOUSE = 5
+    CARAVAN = 6
+    OTHER = 7
+
+
 class Qualification(OrderedEnum):
     NO_QUALIFICATIONS = 0
     LEVEL_1 = 1

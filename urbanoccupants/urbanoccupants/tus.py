@@ -8,10 +8,10 @@ from enum import Enum
 import numpy as np
 import pandas as pd
 
-from pytus2000 import diary, individual
+from pytus2000 import diary, individual, household
 from .person import WeekMarkovChain
 from .types import EconomicActivity, Qualification, HouseholdType, AgeStructure, Pseudo, Carer,\
-    PersonalIncome, PopulationDensity, Region
+    PersonalIncome, PopulationDensity, Region, DwellingType
 
 
 def filter_features_and_drop_nan(seed, features):
@@ -645,3 +645,28 @@ REGION_MAP = {
     individual.GORPAF.SOUTH_EAST_EXCL_LONDON: Region.SOUTH_EAST_EXCL_LONDON,
     individual.GORPAF.SOUTH_WEST: Region.SOUTH_WEST
 }
+
+
+def dwellingtype_map(row):
+    hq13a, hq13b, hq13c, hq13d = row
+    if hq13a == household.HQ13A.A_HOUSE_OR_BUNGALOW:
+        if hq13b == household.HQ13B.DETACHED:
+            return DwellingType.DETACHED_WHOLE_HOUSE_OR_BUNGALOW
+        elif hq13b ==  household.HQ13B.SEMI_DETACHED:
+            return DwellingType.SEMI_DETACHED_WHOLE_HOUSE_OR_BUNGALOW
+        elif hq13b == household.HQ13B.OR_TERRACEEND_OF_TERRACE:
+            return DwellingType.TERRACED_WHOLE_HOUSE_OR_BUNGALOW
+    elif hq13a == household.HQ13A.A_FLAT_OR_MAISONETTE:
+        if hq13c == household.HQ13C.A_PURPOSE_BUILT_BLOCK:
+            return DwellingType.FLAT_PURPOSE_BUILT_BLOCK
+        elif hq13c == household.HQ13C.A_CONVERTED_HOUSESOME_OTHER_KIND_OF_BUILDING:
+            return DwellingType.FLAT_CONVERTED_OR_SHARED_HOUSE
+    elif hq13a == household.HQ13A.OTHER:
+        if hq13d == household.HQ13D.A_CARAVAN__MOBILE_HOME_OR_HOUSEBOAT:
+            return DwellingType.CARAVAN
+        if hq13d == household.HQ13D.SOME_OTHER_KIND_OF_ACCOMMODATION:
+            return DwellingType.OTHER
+    elif hq13a == household.HQ13A.MISSING1:
+        return np.nan
+    elif hq13a == household.HQ13A.A_ROOMROOMS:
+        return DwellingType.OTHER

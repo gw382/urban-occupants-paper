@@ -17,12 +17,13 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 
-from .types import AgeStructure, EconomicActivity, Qualification, HouseholdType, Pseudo
+from .types import AgeStructure, EconomicActivity, Qualification, HouseholdType, Pseudo, DwellingType
 
 NOMIS_KS102EW_DATASET_ID = "NM_145_1"
 NOMIS_QS116EW_DATASET_ID = "NM_516_1"
 NOMIS_KS501EW_DATASET_ID = "NM_623_1"
 NOMIS_KS601EW_DATASET_ID = "NM_624_1"
+NOMIS_KS401EW_DATASET_ID = "NM_618_1"
 # the following are nomis geography codes for Haringey on different layer
 NOMIS_WARD_GEOGRAPHY = "1237319929...1237319939,1237319941,1237319940,1237319942...1237319947"
 NOMIS_MSOA_GEOGRPAHY = "1245708671...1245708705,1245714941"
@@ -154,6 +155,16 @@ HOUSEHOLDTYPE_MAP = {
         HouseholdType.MULTI_PERSON_HOUSEHOLD
 }
 
+DWELLINGTYPE_MAP = {
+    'Whole house or bungalow: Detached':DwellingType.DETACHED_WHOLE_HOUSE_OR_BUNGALOW,
+    'Whole house or bungalow: Semi-detached':DwellingType.SEMI_DETACHED_WHOLE_HOUSE_OR_BUNGALOW,
+    'Whole house or bungalow: Terraced (including end-terrace)':DwellingType.TERRACED_WHOLE_HOUSE_OR_BUNGALOW,
+    'Flat, maisonette or apartment: Purpose-built block of flats or tenement':DwellingType.FLAT_PURPOSE_BUILT_BLOCK,
+    'Flat, maisonette or apartment: Part of a converted or shared house (including bed-sits)':DwellingType.FLAT_CONVERTED_OR_SHARED_HOUSE,
+    'Caravan or other mobile or temporary structure':DwellingType.CARAVAN,
+    'Flat, maisonette or apartment: In a commercial building':DwellingType.OTHER
+}
+
 
 def read_haringey_shape_file(geographical_layer=GeographicalLayer.LSOA):
     """Reads shape file of Haringey from London Data Store.
@@ -210,6 +221,27 @@ def read_household_type_data(geographical_layer=GeographicalLayer.LSOA):
         values='OBS_VALUE'
     )[list(HOUSEHOLDTYPE_MAP.keys())].astype(np.int64)
     df = df.rename(columns=HOUSEHOLDTYPE_MAP).groupby(lambda x: x, axis=1).sum()
+    return df
+
+
+def read_dwelling_type_data(geographical_layer=GeographicalLayer.LSOA):
+    """Retrieves dwelling type date from Census 2011 for Haringey.
+
+    Data is taken from the KS401EW table from the UK Census 2011.
+    Data is retrieved from nomis, see https://www.nomisweb.co.uk.
+    """
+    url = ("https://www.nomisweb.co.uk/api/v01/dataset/{}.data.csv" +
+           "?date=latest&geography={}&rural_urban=0&measures=20100" +
+           "&select=geography_code,cell_name,obs_value").format(NOMIS_KS401EW_DATASET_ID,
+                               geographical_layer.nomis_geo_codes)
+    r = requests.get(url)
+    df = pd.read_csv(io.BytesIO(r.content))
+    df = df.pivot(
+        index='GEOGRAPHY_CODE',
+        columns='CELL_NAME',
+        values='OBS_VALUE'
+    )[list(DWELLINGTYPE_MAP.keys())].astype(np.int64)
+    df = df.rename(columns=DWELLINGTYPE_MAP).groupby(lambda x: x, axis=1).sum()
     return df
 
 
