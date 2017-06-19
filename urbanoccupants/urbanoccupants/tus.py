@@ -22,7 +22,9 @@ def filter_features_and_drop_nan(seed, features):
     """
     if isinstance(features, tuple): # 2D
         features = list(features)
-    return seed[features].dropna(axis='index', how='any')
+    filtered_seed = seed[features].dropna(axis='index', how='any')
+    assert filtered_seed.shape[0] > 0, 'Seed filtered by features {} is empty.'.format(features)
+    return filtered_seed
 
 
 def filter_features(seed, markov_ts, features):

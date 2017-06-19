@@ -47,7 +47,7 @@ class HouseholdFeature(Enum):
 
     def tus_value_to_uo_value(self, feature_values, age):
         if isinstance(feature_values, pd.Series):
-            feature_values.map(self.tus_mapping)
+            return feature_values.map(self.tus_mapping)
         else:
             return feature_values.apply(self.tus_mapping, axis=1, raw=True)
 
